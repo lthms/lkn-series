@@ -1,0 +1,102 @@
+#+TITLE: Have you met lkn?
+#+AUTHOR: lthms <contact@thomasletan.fr>
+#+SETUPFILE: ~/git/org-html-themes/setup/theme-readtheorg.setup
+
+/lkn/ is an experimental framework to write game server. It is written in Elixir
+and leverages the OTP framework to build an actor-based implementation of the
+Entity-Component-System (ECS) pattern. Whether /lkn/ scales for realistic games
+is still an open question, hence the “experimental.” The purpose of the present
+document is to give an overview of the [[https://hex.pm/packages/lkn_core][/lkn-core/]] features. You can see it as a
+tutorial, and a part of the framework documentation. It is also a literate
+programming experiment which leverages Emacs org-mode.
+
+* Elixir-flavour ECS
+
+In short, /lkn-core/ is a free and personal interpretation of an
+“Elixir-flavour” ECS implementation should look like.
+
+** ECS Explained
+
+But, what is the Entity-Component-System pattern to begin with? My understanding
+is that it is an approach to divide different aspects of a given gameplay into
+several unit called systems. Each system takes care of one “function” of the
+game. ECS tutorials often list the collision system, the trade system, the
+battle system, and so on.
+
+A game scene is populated by so-called Entities. There are various kind of
+Entities: players, monsters, obstacles, traps… Systems manipulate Entities: the
+collision system decides who moves and who stays put. The battle system dictates
+who lives and who dies. Of course, not every Entity can move, or be hurt. A
+house can stop a player, but rarely the latter can destroy the former with its
+blade.
+
+Components unify how Systems interact with Entities /and/ to determine which
+Entities take part in a given System. More precisely, each System declares a
+dedicated Component, and if an Entity owns the Component of a System, it means
+it takes part in this System.
+
+In Object-Oriented Programming, the ECS pattern allows to use aggregation
+instead of inheritance, i.e. components are objects an Entity owns, rather than
+classes they inherit from.
+
+** TODO ECS Reinterpretation
+
+Elixir is not an Object-Oriented language, and while /lkn-core/ picks up the
+main ideas of the ECS pattern, it implements it in a different way. In short,
+Entities are a collection of properties, and Components act as proxies for
+Systems to manipulate these properties.
+
+This way, the internal organisation of each kind of Entities can be different
+(and match, for instance, their persistent back-end structure), since the
+Components abstract that in a unified way for the Systems. Also, two Components
+can leverage the same property of a given Entity, meaning they can share
+information. For instance, the battle system can access the entity position
+managed by the collision system (e.g., to compute a list of potential targets).
+
+#+BEGIN_WARNING
+Only one Component should modify a given property of its Entity, to avoid race
+conditions and inconsistency. In earliest prototypes of /lkn-core/, this was
+enforced by the framework, but this protection was dropped. As a consequence, it
+is up to you to be careful.
+#+END_WARNING
+
+Also, /lkn-core/ distinguishes between two categories of Entities: Maps, and
+Puppets. A Map is a game scene wherein Puppets can evolve. Because a Map is an
+Entity, just like a player’s character is, it declares a list of
+Components. This list of Components is used by the framework to determine which
+Systems it needs to initiate for map in particular. That is, you can have a Map
+which owns a Component dedicated to the battle system, and another which does
+not.
+
+* TODO The Most Complicated Chat-Server
+
+* TODO Appendix
+
+#+BEGIN_SRC elixir :tangle lkn-series/mix.exs :mkdirp yes
+  defmodule Lkn.Series.MixProject do
+    use Mix.Project
+
+    def project do
+      [
+        app:              :lkn_series,
+        version:          "0.1.0",
+        elixir:           "~> 1.6",
+        start_permanent:  Mix.env() == :prod,
+        deps:             deps()
+      ]
+    end
+
+    def application do
+      [
+        extra_applications: [
+          :logger,
+        ],
+      ]
+    end
+
+    defp deps do
+      [
+      ]
+    end
+  end
+#+END_SRC
