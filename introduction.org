@@ -10,15 +10,16 @@ document is to give an overview of the [[https://hex.pm/packages/lkn_core][/lkn-
 tutorial, and a part of the framework documentation. It is also a literate
 programming experiment which leverages Emacs org-mode.
 
-* Elixir-flavour ECS
+* /lkn-core/ Explained
 
 In short, /lkn-core/ is a free and personal interpretation of an
-“Elixir-flavour” ECS implementation should look like.
+“Elixir-flavour” ECS implementation should look like, on top of a game scene
+management machinery.
 
-** ECS Explained
+** ECS Reinterpretation
 
-But, what is the Entity-Component-System pattern to begin with? My understanding
-is that it is an approach to divide different aspects of a given gameplay into
+What is the Entity-Component-System pattern to begin with? My understanding is
+that it is an approach to divide different aspects of a given gameplay into
 several unit called systems. Each system takes care of one “function” of the
 game. ECS tutorials often list the collision system, the trade system, the
 battle system, and so on.
@@ -38,8 +39,6 @@ it takes part in this System.
 In Object-Oriented Programming, the ECS pattern allows to use aggregation
 instead of inheritance, i.e. components are objects an Entity owns, rather than
 classes they inherit from.
-
-** TODO ECS Reinterpretation
 
 Elixir is not an Object-Oriented language, and while /lkn-core/ picks up the
 main ideas of the ECS pattern, it implements it in a different way. In short,
@@ -67,6 +66,23 @@ Components. This list of Components is used by the framework to determine which
 Systems it needs to initiate for map in particular. That is, you can have a Map
 which owns a Component dedicated to the battle system, and another which does
 not.
+
+Systems can act autonomously, e.g. a gravity system has always something to
+do. However, a game without players can quickly become boring. Each System
+expose an interface the player will use to inject their game choices (move,
+attack, defend, etc.). In return, Systems will send back notifications to the
+players, so that they can make now choices.
+
+Of course, in this context, a “player” can be a human playing a character, but
+it can also be an IA which manipulates a monsters pack. In /lkn-core/, playing
+is done through puppets, and therefore, “players” are called Puppeteers.
+
+** Managing Game Scenes
+
+/lkn-core/ is about writing game server, and this means it needs to be able to
+manage several game scenes at the same time, sometimes for the very same Map
+(e.g. for dungeons). A /lkn-core/ game scene is called an Instance. An Instance
+gives life to a Map, by initiating the required Systems.
 
 * TODO The Most Complicated Chat-Server
 
