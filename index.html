@@ -3,8 +3,8 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<title>Have you met lkn?</title>
-<!-- 2018-01-26 Fri 11:18 -->
+<title>lkn In A Nutshell</title>
+<!-- 2018-01-28 Sun 12:14 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="lthms &lt;contact@thomasletan.fr&gt;" />
@@ -143,7 +143,7 @@ for the JavaScript code in this tag.
 </head>
 <body>
 <div id="content">
-<h1 class="title">Have you met lkn?</h1>
+<h1 class="title">lkn In A Nutshell</h1>
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
@@ -154,8 +154,12 @@ for the JavaScript code in this tag.
 <li><a href="#sec-1-2">1.2. Managing Game Scenes</a></li>
 </ul>
 </li>
-<li><a href="#sec-2">2. <span class="todo TODO">TODO</span> The Most Complicated Chat-Server</a></li>
-<li><a href="#sec-3">3. <span class="todo TODO">TODO</span> Appendix</a></li>
+<li><a href="#sec-2">2. The Most Complicated Chat-Server</a>
+<ul>
+<li><a href="#sec-2-1">2.1. Specification</a></li>
+<li><a href="#sec-2-2">2.2. Mix Project</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -166,20 +170,20 @@ Entity-Component-System (ECS) pattern. Whether <i>lkn</i> scales for realistic g
 is still an open question, hence the “experimental.” The purpose of the present
 document is to give an overview of the <a href="https://hex.pm/packages/lkn_core"><i>lkn-core</i></a> features. You can see it as a
 tutorial, and a part of the framework documentation. It is also a literate
-programming experiment which leverages Emacs org-mode.
+programming experiment which leverages Emacs org-mode. In you open this file in
+Emacs, <code>M-x org-babel-tangle</code> will generate the project.
 </p>
 
-<div id="outline-container-sec-1" class="outline-2">
-<h2 id="sec-1"><span class="section-number-2">1</span> <i>lkn-core</i> Explained</h2>
-<div class="outline-text-2" id="text-1">
 <p>
 In short, <i>lkn-core</i> is a free and personal interpretation of an
 “Elixir-flavour” ECS implementation should look like, on top of a game scene
 management machinery.
 </p>
-</div>
 
-<div id="outline-container-sec-1-1" class="outline-3">
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> <i>lkn-core</i> Explained</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
 <h3 id="sec-1-1"><span class="section-number-3">1.1</span> ECS Reinterpretation</h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
@@ -211,7 +215,6 @@ In Object-Oriented Programming, the ECS pattern allows to use aggregation
 instead of inheritance, i.e. components are objects an Entity owns, rather than
 classes they inherit from.
 </p>
-
 
 <p>
 Elixir is not an Object-Oriented language, and while <i>lkn-core</i> picks up the
@@ -274,53 +277,102 @@ manage several game scenes at the same time, sometimes for the very same Map
 (e.g. for dungeons). A <i>lkn-core</i> game scene is called an Instance. An Instance
 gives life to a Map, by initiating the required Systems.
 </p>
-</div>
-</div>
-</div>
 
+<p>
+Instances come and go. When there is no room left for a player, a new instance
+must be spawned. Then, when there is no player left inside an Instance, the
+latter can die in peace.
+</p>
+
+<p>
+The idea is the following: with a Map comes an Instances Pool. When a Puppeteer
+wants to join an Instance of this Map, it asks for it to the dedicated Pool,
+which returns one Instance (which might have been spawned just for the occasion,
+but this is not the Puppeteer concern, and it is totally transparent). The
+Puppeteer can then “register” its puppets to its new Instance. When it decides
+to leave, it must unregister its puppets, then unregister itself. An Instance
+can stay alive for a given amount of time even if it has no Puppeteer left. The
+reason is simple: imagine a Map where a rare monster spawns one hour after its
+last kill, we do not want to allow players to run into this monster whenever
+only by going out and going in the Map.
+</p>
+</div>
+</div>
+</div>
 <div id="outline-container-sec-2" class="outline-2">
-<h2 id="sec-2"><span class="section-number-2">2</span> <span class="todo TODO">TODO</span> The Most Complicated Chat-Server</h2>
+<h2 id="sec-2"><span class="section-number-2">2</span> The Most Complicated Chat-Server</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+I suggest we proceed with a concrete example to demonstrate how <i>lkn-core</i> can
+be leveraged to write a server.
+</p>
 </div>
 
-<div id="outline-container-sec-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> <span class="todo TODO">TODO</span> Appendix</h2>
-<div class="outline-text-2" id="text-3">
+<div id="outline-container-sec-2-1" class="outline-3">
+<h3 id="sec-2-1"><span class="section-number-3">2.1</span> Specification</h3>
+<div class="outline-text-3" id="text-2-1">
+<p>
+To illustrate <i>lkn-core</i> features, a good example is a chat server. Basically,
+we want to be able to:
+</p>
+
+<ol class="org-ol">
+<li>Join the <code>#default</code> chat-room when we connect to the server
+</li>
+<li>Change our nickname
+</li>
+<li>Chat (it is a chat-server after all)
+</li>
+<li>Join another chat-room, considering that:
+<ul class="org-ul">
+<li><code>#default</code> and <code>#spam</code> have no chatter limits, but <code>#dungeon</code> can have at
+most 3 players at the given time
+</li>
+<li><code>#dungeon</code> stays alive 2 minutes after the last player leaves
+</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-sec-2-2" class="outline-3">
+<h3 id="sec-2-2"><span class="section-number-3">2.2</span> Mix Project</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+We first configure our Mix project, so we can hack our way through this
+chat-server. <i>lkn-core</i> has been published to <a href="https://hex.pm/packages/lkn_core">hex.pm</a>, so it is easy to use
+it. In addition, it is recommended to use it with <i>lkn-prelude</i>. This might
+change in the future, because <i>lkn-prelude</i> only brings a type-like <code>Option</code>
+similar to Haskell <code>Maybe</code>.
+</p>
+
 <div class="org-src-container">
 
-<pre class="src src-elixir">defmodule Lkn.Series.MixProject do
-  use Mix.Project
-
-  def project do
-    [
-      app:              :lkn_series,
-      version:          "0.1.0",
-      elixir:           "~&gt; 1.6",
-      start_permanent:  Mix.env() == :prod,
-      deps:             deps()
-    ]
-  end
-
-  def application do
-    [
-      extra_applications: [
-        :logger,
-      ],
-    ]
-  end
-
-  defp deps do
-    [
-    ]
-  end
-end
+<pre class="src src-elixir" id="lkn-dependencies">{:lkn_core, "~&gt; 0.4.1"},
+{:lkn_prelude, "~&gt; 0.1.2"},
 </pre>
+</div>
+
+<p>
+Then, <i>lkn-core</i> heavily rely on so-called keys to inter-process
+communication. That is, you should not need to use directly a PID of a <i>lkn</i>
+process. The <code>uuid</code> package provides a function to generate a random UUID, so we
+will use that when we need randomness.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-elixir" id="other-dependencies">{:uuid, "~&gt; 1.1"},
+</pre>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: lthms &lt;contact@thomasletan.fr&gt;</p>
-<p class="date">Created: 2018-01-26 Fri 11:18</p>
+<p class="date">Created: 2018-01-28 Sun 12:14</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 25.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.10)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
