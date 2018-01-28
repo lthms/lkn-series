@@ -117,13 +117,24 @@ we want to be able to:
      most 3 players at the given time
    * ~#dungeon~ stays alive 2 minutes after the last player leaves
 
-** Dependencies
+** Mix Project
+
+We first configure our Mix project, so we can hack our way through this
+chat-server. /lkn-core/ has been published to [[https://hex.pm/packages/lkn_core][hex.pm]], so it is easy to use
+it. In addition, it is recommended to use it with /lkn-prelude/. This might
+change in the future, because /lkn-prelude/ only brings a type-like ~Option~
+similar to Haskell ~Maybe~.
 
 #+NAME: lkn-dependencies
 #+BEGIN_SRC elixir
 {:lkn_core, "~> 0.4.1"},
 {:lkn_prelude, "~> 0.1.2"},
 #+END_SRC
+
+Then, /lkn-core/ heavily rely on so-called keys to inter-process
+communication. That is, you should not need to use directly a PID of a /lkn/
+process. The ~uuid~ package provides a function to generate a random UUID, so we
+will use that when we need randomness.
 
 #+NAME: other-dependencies
 #+BEGIN_SRC elixir
@@ -160,3 +171,5 @@ we want to be able to:
     end
   end
 #+END_SRC
+
+** The ~Chat~ System
