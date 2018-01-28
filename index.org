@@ -1,4 +1,4 @@
-#+TITLE: Have you met lkn?
+#+TITLE: lkn In A Nutshell
 #+AUTHOR: lthms <contact@thomasletan.fr>
 #+SETUPFILE: ~/git/org-html-themes/setup/theme-readtheorg.setup
 
@@ -8,13 +8,14 @@ Entity-Component-System (ECS) pattern. Whether /lkn/ scales for realistic games
 is still an open question, hence the “experimental.” The purpose of the present
 document is to give an overview of the [[https://hex.pm/packages/lkn_core][/lkn-core/]] features. You can see it as a
 tutorial, and a part of the framework documentation. It is also a literate
-programming experiment which leverages Emacs org-mode.
-
-* /lkn-core/ Explained
+programming experiment which leverages Emacs org-mode. In you open this file in
+Emacs, ~M-x org-babel-tangle~ will generate the project.
 
 In short, /lkn-core/ is a free and personal interpretation of an
 “Elixir-flavour” ECS implementation should look like, on top of a game scene
 management machinery.
+
+* /lkn-core/ Explained
 
 ** ECS Reinterpretation
 
@@ -84,21 +85,61 @@ manage several game scenes at the same time, sometimes for the very same Map
 (e.g. for dungeons). A /lkn-core/ game scene is called an Instance. An Instance
 gives life to a Map, by initiating the required Systems.
 
-* TODO The Most Complicated Chat-Server
+Instances come and go. When there is no room left for a player, a new instance
+must be spawned. Then, when there is no player left inside an Instance, the
+latter can die in peace.
 
-* TODO Appendix
+The idea is the following: with a Map comes an Instances Pool. When a Puppeteer
+wants to join an Instance of this Map, it asks for it to the dedicated Pool,
+which returns one Instance (which might have been spawned just for the occasion,
+but this is not the Puppeteer concern, and it is totally transparent). The
+Puppeteer can then “register” its puppets to its new Instance. When it decides
+to leave, it must unregister its puppets, then unregister itself. An Instance
+can stay alive for a given amount of time even if it has no Puppeteer left. The
+reason is simple: imagine a Map where a rare monster spawns one hour after its
+last kill, we do not want to allow players to run into this monster whenever
+only by going out and going in the Map.
+* The Most Complicated Chat-Server
 
-#+BEGIN_SRC elixir :tangle lkn-series/mix.exs :mkdirp yes
+I suggest we proceed with a concrete example to demonstrate how /lkn-core/ can
+be leveraged to write a server.
+
+** Specification
+
+To illustrate /lkn-core/ features, a good example is a chat server. Basically,
+we want to be able to:
+
+1. Join the ~#default~ chat-room when we connect to the server
+2. Change our nickname
+3. Chat (it is a chat-server after all)
+3. Join another chat-room, considering that:
+   * ~#default~ and ~#spam~ have no chatter limits, but ~#dungeon~ can have at
+     most 3 players at the given time
+   * ~#dungeon~ stays alive 2 minutes after the last player leaves
+
+** Dependencies
+
+#+NAME: lkn-dependencies
+#+BEGIN_SRC elixir
+{:lkn_core, "~> 0.4.1"},
+{:lkn_prelude, "~> 0.1.2"},
+#+END_SRC
+
+#+NAME: other-dependencies
+#+BEGIN_SRC elixir
+{:uuid, "~> 1.1"},
+#+END_SRC
+
+#+BEGIN_SRC elixir :tangle lkn-series/mix.exs :exports none :noweb yes :mkdirp yes
   defmodule Lkn.Series.MixProject do
     use Mix.Project
 
     def project do
-      [
-        app:              :lkn_series,
+      [ app:              :lkn_series,
         version:          "0.1.0",
         elixir:           "~> 1.6",
-        start_permanent:  Mix.env() == :prod,
-        deps:             deps()
+        start_permanent:  Mix.env == :prod,
+        deps:             deps(),
       ]
     end
 
@@ -106,12 +147,15 @@ gives life to a Map, by initiating the required Systems.
       [
         extra_applications: [
           :logger,
+          :lkn_core,
         ],
       ]
     end
 
     defp deps do
       [
+        <<lkn-dependencies>>
+        <<other-dependencies>>
       ]
     end
   end

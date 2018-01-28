@@ -2,4 +2,4 @@
 
 clean:
 	rm -rf lkn-series/
-	rm -f introduction.html
+	rm -f index.html
